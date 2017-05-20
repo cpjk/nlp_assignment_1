@@ -4,10 +4,11 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 
+
 class MyBayesClassifier():
     def __init__(self, smooth=1):
-        self._smooth = smooth # This is for additive smoothing
-        self._feat_prob = [] # do not change the name of these vars
+        self._smooth = smooth  # This is for additive smoothing
+        self._feat_prob = []  # do not change the name of these vars
         self._class_prob = []
         self._Ncls = []
         self._Nfeat = []
@@ -32,7 +33,7 @@ class MyBayesClassifier():
         return self._class_prob, self._feat_prob
 
 
-""" 
+"""
 Here is the calling code
 
 """
@@ -46,17 +47,20 @@ with open('sentiment_data/rt-polarity_utf8.pos', 'r') as f:
 data_train = lines_neg[0:5000] + lines_pos[0:5000]
 data_test = lines_neg[5000:] + lines_pos[5000:]
 
-y_train = np.append(np.ones((1,5000)), (np.zeros((1,5000))))
-y_test = np.append(np.ones((1,331)), np.zeros((1,331)))
+y_train = np.append(np.ones((1, 5000)), (np.zeros((1, 5000))))
+y_test = np.append(np.ones((1, 331)), np.zeros((1, 331)))
 
 # You will be changing the parameters to the CountVectorizer below
-vectorizer = CountVectorizer(lowercase=True, stop_words=None,  max_df=1.0, min_df=1, max_features=None,  binary=True)
+# max_df 1.0 ignores a word when more than 100% of documents contain
+# it (impossible)
+# min_df 1 ignores a word when less than 1 document contains it (impossible)
+vectorizer = CountVectorizer(lowercase=True, stop_words=None,  max_df=1.0,
+                             min_df=1, max_features=None,  binary=True)
 X_train = vectorizer.fit_transform(data_train).toarray()
 X_test = vectorizer.transform(data_test).toarray()
 feature_names = vectorizer.get_feature_names()
 
-clf = MyBayesClassifier(1);
-clf.train(X_train,y_train);
+clf = MyBayesClassifier(1)
+clf.train(X_train, y_train)
 y_pred = clf.predict(X_test)
-print np.mean((y_test-y_pred)==0)
-
+print np.mean((y_test-y_pred) == 0)
