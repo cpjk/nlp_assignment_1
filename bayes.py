@@ -34,17 +34,6 @@ class MyBayesClassifier():
         self._class_prob = np.zeros(num_classes)
         self._classes = classes
 
-        # get total num of examples. done
-
-        # for each class, get number of examples having that class
-        # class_counts = np.unique(y, return_counts=True)[1]
-
-        # for each class, (get all examples in class)
-        #   for each word in vocabulary
-        #     get the number of examples that the word occurs in, for that class
-        #     (sum all columns of the examples for the class
-
-
         ex_in_class = {} # examples grouped by class
         counts_for_class_ex = {}
         for cls_idx, cls in enumerate(classes):
@@ -61,32 +50,17 @@ class MyBayesClassifier():
             counts_for_class_ex[cls] = np.sum(ex_in_class[cls], axis=0) + alpha_smooth
 
             # estimate P(wt | C=k) for each feature wt for this class k
-            for idx, feat_count in enumerate(counts_for_class_ex[cls]):
-                denom = class_counts[cls] + (alpha_smooth * num_features)
-                self._feat_prob[cls_idx][idx] = feat_count / denom
+            denom = class_counts[cls] + (alpha_smooth * num_features)
+            self._feat_prob[cls_idx] = counts_for_class_ex[cls] / denom
 
         for cls_idx, cls in enumerate(classes):
             self._class_prob[cls_idx] = float(class_counts[cls]) / num_examples
-
-
-        # for each class k, get P(C=k)
-
-        # - For each class y, for each feature x, find P(x=0|y). note: P(x=1|y) = 1 - P(x=0|y)
-        # and store in self._feat_prob[class][feat]
-        # then P(y|X[i]) = self._class_prob[y] * mult(self._feat_prob[y]
 
 
     # for each feature vector in X, the corresponding index in pred should be
     # 0 if positive, 1 if negative
     def predict(self, X):
         pred = np.zeros(len(X))
-
-        # for each example ex in X:
-        #   for each class in classes:
-        #     for each feature in ex:
-        #       class_prob[cls_idx] *= cond prob of feat given class
-        #     class_prob[ex index] = class_
-        #   pred[ex_idx] = class with highest class prob
 
         for ex_idx, ex in enumerate(X):
             class_probs = np.ones(len(self._classes))
@@ -103,22 +77,13 @@ class MyBayesClassifier():
                     max_prob = prob
                     max_idx = idx
             pred[ex_idx] = self._classes[max_idx]
-            print pred[ex_idx], ex_idx
 
-        pdb.set_trace()
         return pred
 
     @property
     def probs(self):
         # please leave this intact, we will use it for marking
         return self._class_prob, self._feat_prob
-
-    # def __calc_class_probs(self, classes, class_occurrences, num_examples):
-    #     # - Find prob of each class P(y), store in self._class_prob[classes.index_of(y)]
-    #     #   P(y) = num_occurrences_of_y / num_examples
-    #     for cls, index in classes:
-    #         self._class_prob[index] = class_occurrences[index] / num_examples
-
 
 
 # our feature set is a vector of word counts for the vocabulary
@@ -157,7 +122,14 @@ X_test = vectorizer.transform(data_test).toarray()
 
 feature_names = vectorizer.get_feature_names()
 
-clf = MyBayesClassifier(1)
+
+accuracies = {}
+# for alpha in np.arange(start=0.1, stop=3, step=0.1):
+clf = MyBayesClassifier(smooth=3)
 clf.train(X_train, y_train)
 y_pred = clf.predict(X_test)
-print np.mean((y_test - y_pred) == 0) # assert no diff between y_test and y_pred
+accuracies[3] = np.mean((y_test - y_pred) == 0)
+
+pdb.set_trace()
+print accuracies
+# print np.mean((y_test - y_pred) == 0) # assert no diff between y_test and y_pred
