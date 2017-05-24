@@ -5,6 +5,8 @@ from nltk.util import ngrams
 from collections import Counter
 from nltk.tokenize import sent_tokenize, word_tokenize
 from collections import defaultdict
+import numpy as np
+import random as rand
 
 START_TAG = "<s>"
 END_TAG = "</s>"
@@ -69,18 +71,47 @@ for first_w in bigram_words.keys():
         sec_w_prob = float(bigram_words[first_w][sec_w]) / total_sec_words
         word_probs[first_w][sec_w] = sec_w_prob
 
-unigram_cntr = Counter(unigrams)
-bigram_cntr = Counter(bigrams)
+# for each first word, build a range of probabilities of second words
+prob_lists = {}
+for first_w in word_probs.keys():
+    prob_lists[first_w] = {}
+    curr_place = 0
+    for sec_w in word_probs[first_w].keys():
+        prob_range = [curr_place, curr_place + word_probs[first_w][sec_w]] # (curr_place, sec_w prob]
+        prob_lists[first_w][sec_w] = prob_range
+        curr_place = curr_place + word_probs[first_w][sec_w]
 
 
-# for each first word, build a probability range by:
+# prev_word = '<s>'
+# print prev_word
+# while prev_word != '</s>':
+#     rand_num = rand.random()
+#     for sec_w in prob_lists[prev_word].keys():
+#         low, hi = prob_lists[prev_word][sec_w]
+#         if low <= rand_num <= hi: # select this word
+#             prev_word = sec_w
+#             print prev_word
+#             break
 
-# build ranges:
-#   current_place = 0
-#   for each following word:
-#       set range as [current_place, current_place + cond prob of following word)
-#       set current_place as  current_place + cond prob of following word
 
+def generate_sentence(prob_lists):
+    sentence = []
+    prev_word = '<s>'
+    sentence.append(prev_word)
+
+    while prev_word != '</s>':
+        rand_num = rand.random()
+        for sec_w in prob_lists[prev_word].keys():
+            low, hi = prob_lists[prev_word][sec_w]
+            if low <= rand_num <= hi: # select this word
+                prev_word = sec_w
+                sentence.append(prev_word)
+                break
+    return " ".join(sentence)
+for x in list(range(10)):
+    print generate_sentence(prob_lists)
+
+pdb.set_trace()
 
 # look at current word. gen random number. select random word that has followed that word in corpus
 
