@@ -3,6 +3,7 @@
 
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
+from nltk import stem
 import pdb
 
 
@@ -68,7 +69,8 @@ class MyBayesClassifier():
                 class_probs[cls_idx] = self._class_prob[cls_idx]
                 for f_idx, feat in enumerate(ex):
                     cond_prob_present  = self._feat_prob[cls_idx][f_idx]
-                    cond_prob = (feat * cond_prob_present) + ((1 - feat) * (1 - cond_prob_present))
+                    cond_prob = ((feat * cond_prob_present) +
+                                ((1 - feat) * (1 - cond_prob_present)))
                     class_probs[cls_idx] *=  cond_prob # prob of test example feat given class
 
             max_prob, max_idx = 0, 0
@@ -100,8 +102,24 @@ with open('sentiment_data/rt-polarity_utf8.neg', 'r') as f:
 with open('sentiment_data/rt-polarity_utf8.pos', 'r') as f:
     lines_pos = f.read().splitlines()
 
-data_train = lines_neg[0:5000] + lines_pos[0:5000] # first 5000 neg, second 5000 pos
-data_test = lines_neg[5000:] + lines_pos[5000:] # first 331 neg, second 331 pos
+stemmer = stem.PorterStemmer()
+
+stemmed_lines_neg, stemmed_lines_pos = [], []
+
+for line in map(lambda l: l.split(" "), lines_pos):
+    stemmed_line = map(lambda w: stemmer.stem(w.decode('utf-8')), line)
+    stemmed_lines_pos.append(" ".join(stemmed_line))
+
+for line in map(lambda l: l.split(" "), lines_neg):
+    stemmed_line = map(lambda w: stemmer.stem(w.decode('utf-8')), line)
+    stemmed_lines_neg.append(" ".join(stemmed_line))
+
+
+# data_train = lines_neg[0:5000] + lines_pos[0:5000] # first 5000 neg, second 5000 pos
+# data_test = lines_neg[5000:] + lines_pos[5000:] # first 331 neg, second 331 pos
+
+stemmed_data_train = stemmed_lines_neg[0:5000] + stemmed_lines_pos[0:5000]
+stemmed_data_test = stemmed_lines_neg[5000:] + stemmed_lines_pos[5000:]
 
 y_train = np.append(np.ones((1, 5000)), (np.zeros((1, 5000))))
 y_test = np.append(np.ones((1, 331)), np.zeros((1, 331)))
@@ -116,20 +134,20 @@ vectorizer = CountVectorizer(lowercase=True, stop_words=None,  max_df=1.0,
 
 # learn the vocabulary of the training data (fit), and return sparse
 # term count matrix
-X_train = vectorizer.fit_transform(data_train).toarray()
+X_train = vectorizer.fit_transform(stemmed_data_train).toarray()
 
-X_test = vectorizer.transform(data_test).toarray()
+X_test = vectorizer.transform(stemmed_data_test).toarray()
 
 feature_names = vectorizer.get_feature_names()
 
 
 accuracies = {}
+alpha = 3
 # for alpha in np.arange(start=0.1, stop=3, step=0.1):
-clf = MyBayesClassifier(smooth=3)
+clf = MyBayesClassifier(smooth=alpha)
 clf.train(X_train, y_train)
 y_pred = clf.predict(X_test)
-accuracies[3] = np.mean((y_test - y_pred) == 0)
+accuracies[alpha] = np.mean((y_test - y_pred) == 0)
 
 pdb.set_trace()
 print accuracies
-# print np.mean((y_test - y_pred) == 0) # assert no diff between y_test and y_pred
