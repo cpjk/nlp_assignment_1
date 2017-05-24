@@ -4,6 +4,10 @@ import pdb
 from nltk.util import ngrams
 from collections import Counter
 from nltk.tokenize import sent_tokenize, word_tokenize
+from collections import defaultdict
+
+START_TAG = "<s>"
+END_TAG = "</s>"
 
 
 # with open('t8.shakespeare.txt', 'r') as f:
@@ -36,22 +40,29 @@ with open('t8.shakespeare.txt', 'r') as f:
 
 corpus = filter(lambda w: w != '', corpus)
 
-# add start tag to the beginning of each sentence
+# surround sentences with start and end tags
 sents = sent_tokenize(corpus)
 sents = map(lambda s: word_tokenize(s), sents)
-sents = map(lambda s: ["<s>"] + s + ["</s>"], sents)
-pdb.set_trace()
+sents = map(lambda s: [START_TAG] + s + [END_TAG], sents)
 
+# flatten sentence word-lists
+corpus = [token for sent in sents for token in sent]
 
 # generate unigrams and bigrams
 unigrams = list(ngrams(corpus, 1))
 bigrams = list(ngrams(corpus, 2))
 
+# get list of first words in each bigram. for each of these, store the words following it
+# for each first word, calc cond probs of every word that follows it
+bigram_words = {}
+for (first_w, sec_w) in bigrams:
+    bigram_words[first_w] = bigram_words.get(first_w, {})
+    bigram_words[first_w][sec_w] = bigram_words[first_w].get(sec_w, 0) + 1
+
+
 unigram_cntr = Counter(unigrams)
 bigram_cntr = Counter(bigrams)
 
-# get list of first words in each bigram. for each of these, store the words following it
-# for each first word, calc cond probs of every word that follows it
 
 # for each first word, build a probability range by:
 
