@@ -53,12 +53,21 @@ unigrams = list(ngrams(corpus, 1))
 bigrams = list(ngrams(corpus, 2))
 
 # get list of first words in each bigram. for each of these, store the words following it
-# for each first word, calc cond probs of every word that follows it
+# for each first word, store counts of each word that follows it
 bigram_words = {}
 for (first_w, sec_w) in bigrams:
     bigram_words[first_w] = bigram_words.get(first_w, {})
     bigram_words[first_w][sec_w] = bigram_words[first_w].get(sec_w, 0) + 1
 
+# for each first word, calc cond probs of every word that follows it
+word_probs = {}
+for first_w in bigram_words.keys():
+    word_probs[first_w] = {}
+    total_sec_words = reduce(lambda sm, elem: sm + elem, bigram_words[first_w].values())
+
+    for sec_w in bigram_words[first_w].keys():
+        sec_w_prob = float(bigram_words[first_w][sec_w]) / total_sec_words
+        word_probs[first_w][sec_w] = sec_w_prob
 
 unigram_cntr = Counter(unigrams)
 bigram_cntr = Counter(bigrams)
