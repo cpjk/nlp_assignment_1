@@ -115,8 +115,8 @@ for line in map(lambda l: l.split(" "), lines_neg):
     stemmed_lines_neg.append(" ".join(stemmed_line))
 
 
-# data_train = lines_neg[0:5000] + lines_pos[0:5000] # first 5000 neg, second 5000 pos
-# data_test = lines_neg[5000:] + lines_pos[5000:] # first 331 neg, second 331 pos
+# data_train = lines_neg[0:5000] + lines_pos[0:5000]
+# data_test = lines_neg[5000:] + lines_pos[5000:]
 
 stemmed_data_train = stemmed_lines_neg[0:5000] + stemmed_lines_pos[0:5000]
 stemmed_data_test = stemmed_lines_neg[5000:] + stemmed_lines_pos[5000:]
@@ -129,7 +129,7 @@ y_test = np.append(np.ones((1, 331)), np.zeros((1, 331)))
 # max_df 1.0 ignores a word when more than 100% of documents contain
 # it (impossible)
 # min_df 1 ignores a word when less than 1 document contains it (impossible)
-vectorizer = CountVectorizer(lowercase=True, stop_words=None,  max_df=1.0,
+vectorizer = CountVectorizer(lowercase=True, stop_words='english',  max_df=1.0,
                              min_df=1, max_features=None,  binary=True)
 
 # learn the vocabulary of the training data (fit), and return sparse
@@ -142,12 +142,10 @@ feature_names = vectorizer.get_feature_names()
 
 
 accuracies = {}
-alpha = 3
-# for alpha in np.arange(start=0.1, stop=3, step=0.1):
-clf = MyBayesClassifier(smooth=alpha)
-clf.train(X_train, y_train)
-y_pred = clf.predict(X_test)
-accuracies[alpha] = np.mean((y_test - y_pred) == 0)
+for alpha in np.arange(start=0.1, stop=3.1, step=0.1):
+    clf = MyBayesClassifier(smooth=alpha)
+    clf.train(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    accuracies[alpha] = np.mean((y_test - y_pred) == 0)
 
-pdb.set_trace()
 print accuracies
