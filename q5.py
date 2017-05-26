@@ -70,8 +70,7 @@ def part_b():
     # flatten sentence word-lists
     corpus = [token for sent in sents for token in sent]
 
-    # generate unigrams and bigrams
-    unigrams = list(ngrams(corpus, 1))
+    # generate bigrams
     bigrams = list(ngrams(corpus, 2))
 
     # get list of first words in each bigram. for each of these, store the words following it
@@ -97,7 +96,7 @@ def part_b():
         prob_lists[first_w] = {}
         curr_place = 0
         for sec_w in word_probs[first_w].keys():
-            prob_range = [curr_place, curr_place + word_probs[first_w][sec_w]] # (curr_place, sec_w prob]
+            prob_range = [curr_place, curr_place + word_probs[first_w][sec_w]]
             prob_lists[first_w][sec_w] = prob_range
             curr_place = curr_place + word_probs[first_w][sec_w]
 
